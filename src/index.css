@@ -11,3 +11,27 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.app {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.app-bg {
+  z-index: -1;
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  background-color:#dd99ff;
+  background-image:
+          radial-gradient(at 1% 83%, hsla(236,74%,72%,1) 0px, transparent 50%),
+          radial-gradient(at 68% 72%, hsla(17,71%,72%,1) 0px, transparent 50%),
+          radial-gradient(at 35% 35%, hsla(333,62%,79%,1) 0px, transparent 50%),
+          radial-gradient(at 88% 94%, hsla(6,67%,60%,1) 0px, transparent 50%),
+          radial-gradient(at 25% 52%, hsla(346,95%,63%,1) 0px, transparent 50%),
+          radial-gradient(at 84% 8%, hsla(334,91%,74%,1) 0px, transparent 50%),
+          radial-gradient(at 84% 37%, hsla(289,96%,78%,1) 0px, transparent 50%);
+}
