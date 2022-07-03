@@ -1,23 +1,32 @@
 import React from "react";
 import styles from "./Board.module.scss";
-import {Colors} from "../../types";
+import {BoardNumberByLetter, Colors} from "../../types";
 import classNames from "classnames/bind";
+import figure from "../Figure/Figure";
 
 
 interface CellProps {
-  color: Colors,
-  x: string,
-  y: number,
+  color: Colors;
+  x: string;
+  y: number;
+  cellClicked: (x: number, y: number) => void;
+  isAvailableForMove?: boolean;
+  isHavingFigure?: boolean;
 }
 
 const Cell: React.FC<CellProps> = (props: CellProps) => {
   return (
-    <li id={`cell-${props.x}-${props.y}`} className={
+    <li onClick={() => props.cellClicked(BoardNumberByLetter[props.x], props.y)} id={`cell-${props.x}-${props.y}`} className={
       classNames(styles.cell, {
-        [styles.cellWhite]: props.color === Colors.WHITE ? true : false,
-        [styles.cellBlack]: props.color === Colors.BLACK ? true : false,
+        [styles.cellWhite]: props.color === Colors.WHITE,
+        [styles.cellBlack]: props.color === Colors.BLACK,
+        [styles.availableCell]: props.isAvailableForMove && !props.isHavingFigure,
       })
-    }></li>
+    }>
+      <div className={classNames(styles.cellCircle, {
+        [styles.cellCircleShow]: props.isAvailableForMove && !props.isHavingFigure
+      })}></div>
+    </li>
   )
 }
 

@@ -28,7 +28,8 @@
 }
 
 .cell {
-
+  position: relative;
+  transition: all .2s;
 }
 
 .cellBlack {
@@ -39,9 +40,37 @@
   background-color: #E8EDF9;
 }
 
+.availableCell {
+
+  &:hover {
+    cursor: pointer;
+
+    .cellCircle {
+      opacity: .8;
+    }
+  }
+}
+
+.cellCircle {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 500px;
+  left: calc(50% - 12px);
+  top: calc(50% - 12px);
+  opacity: 0;
+  background-color: #7B61FF;
+
+  transition: all .2s;
+}
+
+.cellCircleShow {
+  opacity: 1;
+}
+
 .boardLeft {
   display: flex;
-  flex-flow: column;
+  flex-flow: column-reverse;
   position: absolute;
   width: 48px;
   height: 100%;

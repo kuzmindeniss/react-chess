@@ -12,7 +12,7 @@ export enum Figures {
 	ROOK = 'rook',
 }
 
-export const BoardLetters: {[key: number]: string} = {
+export const BoardLettersByNumber: {[key: number]: string} = {
 	1: 'A',
 	2: 'B',
 	3: 'C',
@@ -23,3 +23,22 @@ export const BoardLetters: {[key: number]: string} = {
 	8: 'H',
 }
 
+export const BoardNumberByLetter: {[key: string]: number} = {
+	'A': 1,
+	'B': 2,
+	'C': 3,
+	'D': 4,
+	'E': 5,
+	'F': 6,
+	'G': 7,
+	'H': 8,
+}
+
+
+export interface FigureData {
+	id: string,
+	name: Figures,
+	x: number,
+	y: number,
+	color: Colors
+}

@@ -1,0 +1,16 @@
+.figure {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+  padding: 6px;
+  transition: all .5s;
+
+  &:hover {
+    opacity: .85;
+    cursor: pointer;
+  }
+}
+
+.figureEatable {
+  background-color: rgba(255, 0, 0, 0.2);
+}
