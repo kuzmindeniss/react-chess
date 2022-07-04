@@ -6,6 +6,7 @@ import classNames from "classnames";
 interface FigureProps {
 	figure: FigureData;
 	figureClicked: (figure: FigureData) => void;
+	isSelected?: boolean
 	isEatable?: boolean;
 }
 
@@ -85,7 +86,7 @@ const Figure: React.FC<FigureProps> = (props: FigureProps) => {
 
 	return <div
 		onClick={() => props.figureClicked(props.figure)} className={classNames(styles.figure, {
-			[styles.figureEatable]: props.isEatable
+			[styles.figureEatable]: props.isEatable,
 		})}
 		style={{'left': position.left, bottom: position.bottom}} id={props.figure.id}
 	>

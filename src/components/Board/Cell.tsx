@@ -12,6 +12,7 @@ interface CellProps {
   cellClicked: (x: number, y: number) => void;
   isAvailableForMove?: boolean;
   isHavingFigure?: boolean;
+  isSelected?: boolean;
 }
 
 const Cell: React.FC<CellProps> = (props: CellProps) => {
@@ -21,6 +22,7 @@ const Cell: React.FC<CellProps> = (props: CellProps) => {
         [styles.cellWhite]: props.color === Colors.WHITE,
         [styles.cellBlack]: props.color === Colors.BLACK,
         [styles.availableCell]: props.isAvailableForMove && !props.isHavingFigure,
+        [styles.cellSelected]: props.isSelected,
       })
     }>
       <div className={classNames(styles.cellCircle, {

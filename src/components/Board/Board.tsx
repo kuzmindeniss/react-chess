@@ -64,6 +64,7 @@ const Board: React.FC = () => {
 						isAvailableForMove={isAvailableCellForMove(x, y)}
 						isHavingFigure={isCellHavingFigure(x, y)}
 						cellClicked={cellClicked}
+						isSelected={isSelectedCell(x, y)}
 					/>)
 				} else {
 					cells.push(<Cell
@@ -72,6 +73,7 @@ const Board: React.FC = () => {
 						isAvailableForMove={isAvailableCellForMove(x, y)}
 						isHavingFigure={isCellHavingFigure(x, y)}
 						cellClicked={cellClicked}
+						isSelected={isSelectedCell(x, y)}
 					/>)
 				}
 			}
@@ -84,6 +86,16 @@ const Board: React.FC = () => {
 		return choseFigurePos.availableCells[`${figure.x}-${figure.y}`];
 	}
 
+	const isSelectedFigure = (figure: FigureData): boolean => {
+		if (!choseFigurePos) return false;
+		return choseFigurePos.figure.id === figure.id;
+	}
+
+	const isSelectedCell = (x: number, y: number): boolean => {
+		if (!choseFigurePos) return false;
+		return choseFigurePos.figure.x === x && choseFigurePos.figure.y === y;
+	}
+
 	const initFigures = (): JSX.Element[] => {
 		const figuresJSX: JSX.Element[] = [];
 
@@ -94,6 +106,7 @@ const Board: React.FC = () => {
 				key={figures[item].id}
 				figure={figures[item]}
 				isEatable={isEatableFigure(figures[item])}
+				isSelected={isSelectedFigure(figures[item])}
 			/>);
 		}
 
@@ -153,6 +166,12 @@ const Board: React.FC = () => {
 			return false;
 		}
 
+		const checkCellForMove = (x: number, y: number): boolean => {
+			if (toStopWay(x, y)) return false;
+			way.push({x, y});
+			return true;
+		}
+
 		const verticalTop = (toY: number, fromY: number = figure.y) => {
 			for (let i = fromY + 1; i <= toY; i++) {
 				if (toStopWay(figure.x, i)) return;
@@ -178,6 +197,41 @@ const Board: React.FC = () => {
 			for (let i = fromX + 1; i <= toX; i++) {
 				if (toStopWay(i, figure.y)) return;
 				way.push({x: i, y: figure.y});
+			}
+		}
+
+		const checkDiagonal = () => {
+			// top right
+			for (let i = 1; i <= 8; i++) {
+				if (!checkCellForMove(figure.x + i, figure.y + i)) break;
+			}
+			// bottom right
+			for (let i = 1; i <= 8; i++) {
+				if (!checkCellForMove(figure.x + i, figure.y - i)) break;
+			}
+			// bottom left
+			for (let i = 1; i <= 8; i++) {
+				if (!checkCellForMove(figure.x - i, figure.y - i)) break;
+			}
+			for (let i = 1; i <= 8; i++) {
+				if (!checkCellForMove(figure.x - i, figure.y + i)) break;
+			}
+		}
+
+		const checkEatableFiguresByDiagonal = () => {
+			for (let i = 1; i <= 8; i++) {
+				if (checkEatableOrAlliesCell(figure.x + i, figure.y + i)) break;
+			}
+			// bottom right
+			for (let i = 1; i <= 8; i++) {
+				if (checkEatableOrAlliesCell(figure.x + i, figure.y - i)) break;
+			}
+			// bottom left
+			for (let i = 1; i <= 8; i++) {
+				if (checkEatableOrAlliesCell(figure.x - i, figure.y - i)) break;
+			}
+			for (let i = 1; i <= 8; i++) {
+				if (checkEatableOrAlliesCell(figure.x - i, figure.y + i)) break;
 			}
 		}
 
@@ -228,7 +282,6 @@ const Board: React.FC = () => {
 		const checkEatableFiguresByRook = () => {
 			// check top
 			for (let i = figure.y + 1; i <= 8; i++) {
-				console.log(i);
 				if (checkEatableOrAlliesCell(figure.x, i)) break;
 			}
 			// check bottom
@@ -253,12 +306,85 @@ const Board: React.FC = () => {
 			checkEatableFiguresByRook();
 		}
 
-		const obj: { [key: string]: boolean } = {};
+		// KNIGHT
+		const checkMovesByKnight = () => {
+			checkCellForMove(figure.x + 1, figure.y + 2);
+			checkCellForMove(figure.x - 1, figure.y + 2);
+			checkCellForMove(figure.x + 2, figure.y + 1);
+			checkCellForMove(figure.x + 2, figure.y - 1);
+			checkCellForMove(figure.x + 1, figure.y - 2);
+			checkCellForMove(figure.x - 1, figure.y - 2);
+			checkCellForMove(figure.x - 2, figure.y - 1);
+			checkCellForMove(figure.x - 2, figure.y + 1);
+		}
 
+		const checkEatableFiguresByKnight = () => {
+			checkEatableOrAlliesCell(figure.x + 1, figure.y + 2);
+			checkEatableOrAlliesCell(figure.x - 1, figure.y + 2);
+			checkEatableOrAlliesCell(figure.x + 2, figure.y + 1);
+			checkEatableOrAlliesCell(figure.x + 2, figure.y - 1);
+			checkEatableOrAlliesCell(figure.x + 1, figure.y - 2);
+			checkEatableOrAlliesCell(figure.x - 1, figure.y - 2);
+			checkEatableOrAlliesCell(figure.x - 2, figure.y - 1);
+			checkEatableOrAlliesCell(figure.x - 2, figure.y + 1);
+		}
+
+		if (figure.name === Figures.KNIGHT) {
+			checkMovesByKnight();
+			checkEatableFiguresByKnight();
+		}
+
+		// BISHOP
+		if (figure.name === Figures.BISHOP) {
+			checkDiagonal();
+			checkEatableFiguresByDiagonal();
+		}
+
+		// QUEEN
+		if (figure.name === Figures.QUEEN) {
+			checkDiagonal();
+			checkEatableFiguresByDiagonal();
+			verticalBottom(0);
+			verticalTop(8);
+			horizontalLeft(0);
+			horizontalRight(8);
+			checkEatableFiguresByRook();
+		}
+
+		// KING
+		const checkKingDiagonal = () => {
+			checkCellForMove(figure.x + 1, figure.y + 1);
+			checkCellForMove(figure.x + 1, figure.y - 1);
+			checkCellForMove(figure.x - 1, figure.y - 1);
+			checkCellForMove(figure.x - 1, figure.y + 1);
+		}
+
+		const checkEatableFiguresByKing = () => {
+			checkEatableOrAlliesCell(figure.x + 1, figure.y + 1);
+			checkEatableOrAlliesCell(figure.x + 1, figure.y - 1);
+			checkEatableOrAlliesCell(figure.x - 1, figure.y - 1);
+			checkEatableOrAlliesCell(figure.x - 1, figure.y + 1);
+			checkEatableOrAlliesCell(figure.x + 1, figure.y);
+			checkEatableOrAlliesCell(figure.x - 1, figure.y);
+			checkEatableOrAlliesCell(figure.x, figure.y + 1);
+			checkEatableOrAlliesCell(figure.x, figure.y - 1);
+		}
+
+		if (figure.name === Figures.KING) {
+			verticalBottom(figure.y - 1);
+			verticalTop(figure.y + 1);
+			horizontalLeft(figure.x - 1);
+			horizontalRight(figure.x + 1)
+			checkKingDiagonal();
+			checkEatableFiguresByKing();
+		}
+
+
+
+		const obj: { [key: string]: boolean } = {};
 		way.forEach(el => {
 			obj[`${el.x}-${el.y}`] = true;
 		});
-
 		return obj;
 	}
 
