@@ -2,11 +2,17 @@ import React, {MutableRefObject, useEffect, useRef, useState} from "react";
 import styles from "./Board.module.scss";
 import {BoardLettersByNumber, Colors, FigureData, Figures} from "types";
 import Cell from "./Cell";
-import {initialFigures} from "./initialPos";
+// import {initialFigures} from "./initialPos";
 import Figure from "components/Figure/Figure";
+import {changeFigurePosition, removeFigure, selectFigures} from "../../redux/gameSlice";
+import store from "redux/store";
+import {Simulate} from "react-dom/test-utils";
+import {useAppDispatch} from "../../redux/hooks";
 
 const Board: React.FC = () => {
-	const [figures, setFigures] = useState<{ [key: string]: FigureData }>(initialFigures);
+	// const [figures, setFigures] = useState<{ [key: string]: FigureData }>(initialFigures);
+	const dispatch = useAppDispatch();
+	const figures = selectFigures(store.getState());
 	const [gameWon, setGameWon] = useState<Colors | null>(null);
 	let [isKingInCheck, setIsKingInCheck] = useState<boolean>(false);
 	let dangerousCells: MutableRefObject<{
@@ -41,16 +47,17 @@ const Board: React.FC = () => {
 	const moveOn = (figure: FigureData, x: number, y: number) => {
 		cellsFigure[`${figure.x}-${figure.y}`] = null;
 		cellsFigure[`${x}-${y}`] = figure;
-		setFigures(state => {
-			return {
-				...state,
-				[figure.id]: {
-					...state[figure.id],
-					x,
-					y
-				}
-			}
-		});
+		dispatch(changeFigurePosition({figure, x, y}));
+		// setFigures(state => {
+		// 	return {
+		// 		...state,
+		// 		[figure.id]: {
+		// 			...state[figure.id],
+		// 			x,
+		// 			y
+		// 		}
+		// 	}
+		// });
 		setChoseFigurePos(null);
 	}
 
@@ -170,11 +177,12 @@ const Board: React.FC = () => {
 
 	const eatFigure = (figure: FigureData): void => {
 		cellsFigure[`${figure.x}-${figure.y}`] = null;
-		setFigures(state => {
-			const newState = {...state};
-			delete newState[figure.id];
-			return newState;
-		});
+		dispatch(removeFigure(figure));
+		// setFigures(state => {
+		// 	const newState = {...state};
+		// 	delete newState[figure.id];
+		// 	return newState;
+		// });
 
 		if (figure.name === Figures.KING) {
 			setGameWon(getOtherColor(figure.color));

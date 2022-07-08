@@ -8,7 +8,6 @@ const Main: React.FC = () => {
 
 	const radioChanged = (id: string) => {
 		color.current = id;
-		console.log(color.current);
 	}
 
 	return <div className={styles.wrapper}>
