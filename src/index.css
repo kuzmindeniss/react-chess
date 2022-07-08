@@ -14,9 +14,10 @@ code {
 
 .app {
   display: flex;
+  align-content: center;
   justify-content: center;
-  align-items: center;
   min-height: 100vh;
+  padding: 48px;
 }
 
 .app-bg {

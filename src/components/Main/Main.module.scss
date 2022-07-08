@@ -1,0 +1,54 @@
+.wrapper {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  background: rgba( 255, 255, 255, 0.25 );
+  box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+  backdrop-filter: blur( 4px );
+  -webkit-backdrop-filter: blur( 4px );
+  border-radius: 10px;
+  border: 1px solid rgba( 255, 255, 255, 0.18 );
+  align-self: center;
+  padding: 24px 36px;
+  font-size: 18px;
+  color: #34364C;
+
+  h2 {
+    display: inline-block;
+    margin-bottom: 12px;
+    vertical-align: center;
+  }
+}
+
+.button {
+  background: rgba( 255, 255, 255, 0.25 );
+  box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+  backdrop-filter: blur( 4px );
+  -webkit-backdrop-filter: blur( 4px );
+  border-radius: 10px;
+  border: 1px solid rgba( 255, 255, 255, 0.18 );
+  margin-top: 18px;
+  transition: all .5s;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 4px 32px;
+  margin-top: 18px;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    box-shadow: none;
+  }
+}
+
+.logo {
+  display: inline-block;
+  width: 100px;
+  height: 100px;
+  background: url('../../../public/logo.png');
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  vertical-align: center;
+  margin-bottom: 20px ;
+}

@@ -1,15 +1,25 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {MutableRefObject, useEffect, useRef, useState} from "react";
 import styles from "./Board.module.scss";
 import {BoardLettersByNumber, Colors, FigureData, Figures} from "types";
 import Cell from "./Cell";
 import {initialFigures} from "./initialPos";
 import Figure from "components/Figure/Figure";
 
-
 const Board: React.FC = () => {
 	const [figures, setFigures] = useState<{ [key: string]: FigureData }>(initialFigures);
+	const [gameWon, setGameWon] = useState<Colors | null>(null);
+	let [isKingInCheck, setIsKingInCheck] = useState<boolean>(false);
+	let dangerousCells: MutableRefObject<{
+		white: { [key: string]: boolean };
+		black: { [key: string]: boolean }
+	}> = useRef({white: {}, black: {}});
 
-	const boardRef = useRef<HTMLUListElement>(null);
+	const sides = {
+		ally: Colors.WHITE,
+		enemy: Colors.BLACK,
+	}
+
+	const boardRef = useRef<HTMLDivElement>(null);
 	const [choseFigurePos, setChoseFigurePos] = useState<{
 		figure: FigureData
 		availableCells: { [key: string]: boolean }
@@ -35,12 +45,12 @@ const Board: React.FC = () => {
 			return {
 				...state,
 				[figure.id]: {
-					...figure,
+					...state[figure.id],
 					x,
 					y
 				}
-			};
-		})
+			}
+		});
 		setChoseFigurePos(null);
 	}
 
@@ -49,6 +59,7 @@ const Board: React.FC = () => {
 		if (!choseFigurePos.availableCells[`${x}-${y}`]) return;
 
 		moveOn(choseFigurePos.figure, x, y);
+		nextAIMoveDelayed();
 	}
 
 	const initCells = (): JSX.Element[] => {
@@ -100,6 +111,7 @@ const Board: React.FC = () => {
 		const figuresJSX: JSX.Element[] = [];
 
 		for (let item in figures) {
+			if (!figures[item].id || !figures[item].color) continue;
 			cellsFigure[`${figures[item].x}-${figures[item].y}`] = figures[item];
 			figuresJSX.push(<Figure
 				figureClicked={figureClicked}
@@ -114,14 +126,17 @@ const Board: React.FC = () => {
 	}
 
 	const resizeBoard = () => {
+		const paddingsWidth = 48 + 12;
+		const paddingHeight = 52 + 12;
+
 		if (boardRef.current) {
 			const board = boardRef.current;
 			board.style.height = '';
 			board.style.width = '';
 
 			const boardRect = board.getBoundingClientRect();
-			const boardWidth = boardRect.width;
-			const boardHeight = boardRect.height;
+			const boardWidth = boardRect.width - paddingsWidth + paddingHeight;
+			const boardHeight = boardRect.height - paddingHeight + paddingsWidth;
 
 			if (boardHeight > boardWidth) {
 				board.style.height = boardWidth + 'px';
@@ -133,8 +148,8 @@ const Board: React.FC = () => {
 
 	const figureClicked = (figure: FigureData) => {
 		if (choseFigurePos && choseFigurePos.availableCells[`${figure.x}-${figure.y}`] && choseFigurePos.figure.color !== figure.color) {
-			moveOn(choseFigurePos.figure, figure.x, figure.y);
-			eatFigure(figure);
+			moveOrEat(choseFigurePos.figure, figure.x, figure.y);
+			nextAIMoveDelayed();
 			return;
 		}
 
@@ -143,22 +158,37 @@ const Board: React.FC = () => {
 			return;
 		}
 
+		if (sides.ally !== figure.color) return;
+
+		if (isKingInCheck && figure.name !== Figures.KING) return;
+
 		setChoseFigurePos({
 			figure,
 			availableCells: getAvailableCells(figure)
 		});
 	}
 
-	const eatFigure = (figure: FigureData) => {
+	const eatFigure = (figure: FigureData): void => {
+		cellsFigure[`${figure.x}-${figure.y}`] = null;
 		setFigures(state => {
 			const newState = {...state};
 			delete newState[figure.id];
 			return newState;
 		});
+
+		if (figure.name === Figures.KING) {
+			setGameWon(getOtherColor(figure.color));
+		}
 	}
 
-	const getAvailableCells = (figure: FigureData): { [key: string]: boolean } => {
-		const way: { y: number, x: number }[] = [];
+	const moveOrEat = (figure: FigureData, x: number, y: number): void => {
+		const figureOnCell = cellsFigure[`${x}-${y}`];
+		if (figureOnCell && figureOnCell.color !== figure.color) eatFigure(figureOnCell);
+		moveOn(figure, x, y);
+	}
+
+	const getAvailableCells = (figure: FigureData, isForDangerousCells: boolean = false): { [key: string]: boolean } => {
+		let way: { y: number, x: number }[] = [];
 
 		const toStopWay = (x: number, y: number): boolean => {
 			if (cellsFigure[`${x}-${y}`] === undefined) return true;
@@ -270,10 +300,20 @@ const Board: React.FC = () => {
 
 		if (figure.name === Figures.PAWN) {
 			if (figure.color === Colors.BLACK) {
-				verticalBottom(figure.y - 2);
+				if (!isForDangerousCells) {
+					verticalBottom(figure.y - 2);
+				} else {
+					way.push({y: figure.y - 1, x: figure.x - 1})
+					way.push({y: figure.y - 1, x: figure.x + 1})
+				}
 			}
 			if (figure.color === Colors.WHITE) {
-				verticalTop(figure.y + 2);
+				if (!isForDangerousCells) {
+					verticalTop(figure.y + 2);
+				} else {
+					way.push({y: figure.y + 1, x: figure.x - 1})
+					way.push({y: figure.y + 1, x: figure.x + 1})
+				}
 			}
 			checkEatableFiguresByPawn();
 		}
@@ -377,8 +417,17 @@ const Board: React.FC = () => {
 			horizontalRight(figure.x + 1)
 			checkKingDiagonal();
 			checkEatableFiguresByKing();
-		}
 
+			const cellsForRemoving:{x: number, y: number}[] = [];
+			for (let i = 0; i < way.length; i++) {
+				if (dangerousCells.current[getOtherColor(figure.color)][`${way[i].x}-${way[i].y}`]) {
+					cellsForRemoving.push({x: way[i].x, y: way[i].y})
+				}
+			}
+			cellsForRemoving.forEach(elw => {
+				way = way.filter(el => !(el.y === elw.y && el.x === elw.x) )
+			});
+		}
 
 
 		const obj: { [key: string]: boolean } = {};
@@ -388,12 +437,93 @@ const Board: React.FC = () => {
 		return obj;
 	}
 
+	const nextAIMove = () => {
+		const getRandomElementOfArray = <T extends unknown>(arr: T[]): T => {
+			return arr[Math.floor(Math.random() * arr.length)];
+		}
+
+		const figuresIds = Object.keys(figures);
+		if (figuresIds.length < 1) return;
+		const enemyFiguresIds = figuresIds.filter(id => figures[id].color === sides.enemy);
+		let randomFigureId = getRandomElementOfArray(enemyFiguresIds);
+		let availableCells = getAvailableCells(figures[randomFigureId]);
+		let availableCellsArr = Object.keys(availableCells);
+		const triedFiguresIds: string[] = [];
+		while (availableCellsArr.length < 1) {
+			if (triedFiguresIds.length >= enemyFiguresIds.length) return;
+			randomFigureId = getRandomElementOfArray(enemyFiguresIds);
+			availableCells = getAvailableCells(figures[randomFigureId]);
+			availableCellsArr = Object.keys(availableCells);
+			triedFiguresIds.push(randomFigureId);
+		}
+		const cellForMove = getRandomElementOfArray(availableCellsArr);
+		const [x, y] = cellForMove.split('-');
+		console.log(`Move ${randomFigureId} from ${figures[randomFigureId].x}-${figures[randomFigureId].y} to ${x}-${y}`);
+		moveOrEat(figures[randomFigureId], Number(x), Number(y));
+	}
+
+	const nextAIMoveDelayed = (delay: number = 200) => {
+		setTimeout(nextAIMove, delay);
+	};
+
+	const getFiguresBySide = (color: Colors) => {
+		return Object.keys(figures).filter(figureId => figures[figureId].color === color).map(figureId => figures[figureId]);
+	}
+
+	const updateAllAvailableCells = () => {
+		dangerousCells.current.white = {};
+		dangerousCells.current.black = {};
+		const whiteFigures = getFiguresBySide(Colors.WHITE);
+		const blackFigures = getFiguresBySide(Colors.BLACK);
+		whiteFigures.forEach(figure => {
+			dangerousCells.current.white = {
+				...dangerousCells.current.white,
+				...getAvailableCells(figure, true),
+			};
+		});
+		blackFigures.forEach(figure => {
+			dangerousCells.current.black = {
+				...dangerousCells.current.black,
+				...getAvailableCells(figure, true),
+			};
+		});
+	}
+
+	const getOtherColor = (color: Colors) => {
+		return color === Colors.BLACK ? Colors.WHITE : Colors.BLACK;
+	}
+
+	const checkIsKingInCheck = (color: Colors) => {
+		updateAllAvailableCells();
+		const kings = {
+			[Colors.WHITE]: figures['white-king-5-1'],
+			[Colors.BLACK]: figures['black-king-5-8']
+		}
+		const king = kings[color];
+		if (!king) return;
+		if (dangerousCells.current[getOtherColor(color)][`${king.x}-${king.y}`]) setIsKingInCheck(true);
+		else setIsKingInCheck(false);
+	};
+
+	const getGameWonJSX = (): JSX.Element | null => {
+		if (!gameWon) return null;
+		const color = gameWon[0].toUpperCase() + gameWon.slice(1);
+
+		return <div className={styles.gameWon}>
+			<h2 className={styles.gameWonTitle}>{ color } won</h2>
+		</div>;
+	}
+
+	useEffect(() => {
+		checkIsKingInCheck(sides.ally);
+	}, [figures])
+
 	useEffect(() => {
 		resizeBoard();
 		window.addEventListener('resize', resizeBoard);
 	}, [])
 
-	return <div className={styles.boardWrapper}>
+	return <div className={styles.boardWrapper} ref={boardRef}>
 		<ul className={styles.boardLeft}>
 			<li className={styles.boardLeftItem}>1</li>
 			<li className={styles.boardLeftItem}>2</li>
@@ -416,10 +546,12 @@ const Board: React.FC = () => {
 			<li className={styles.boardBottomItem}>H</li>
 		</ul>
 
-		<ul className={styles.board} ref={boardRef}>
+		<ul className={styles.board}>
 			{initCells()}
 			{initFigures()}
 		</ul>
+
+		{ getGameWonJSX() }
 	</div>
 }
 
