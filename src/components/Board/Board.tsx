@@ -2,18 +2,23 @@ import React, {MutableRefObject, useEffect, useRef, useState} from "react";
 import styles from "./Board.module.scss";
 import {BoardLettersByNumber, Colors, FigureData, Figures} from "types";
 import Cell from "./Cell";
-// import {initialFigures} from "./initialPos";
 import Figure from "components/Figure/Figure";
-import {changeFigurePosition, removeFigure, selectFigures} from "../../redux/gameSlice";
-import store from "redux/store";
-import {Simulate} from "react-dom/test-utils";
-import {useAppDispatch} from "../../redux/hooks";
+import {
+	changeFigurePosition,
+	removeFigure,
+	selectColor,
+	selectFigures,
+	selectGameWon,
+	setGameWon
+} from "redux/gameSlice";
+import {useAppDispatch, useAppSelector} from "redux/hooks";
+import store from "../../redux/store";
 
 const Board: React.FC = () => {
-	// const [figures, setFigures] = useState<{ [key: string]: FigureData }>(initialFigures);
 	const dispatch = useAppDispatch();
-	const figures = selectFigures(store.getState());
-	const [gameWon, setGameWon] = useState<Colors | null>(null);
+	const gameColor = useAppSelector(selectColor);
+	const figures = useAppSelector(selectFigures);
+	const gameWon = useAppSelector(selectGameWon);
 	let [isKingInCheck, setIsKingInCheck] = useState<boolean>(false);
 	let dangerousCells: MutableRefObject<{
 		white: { [key: string]: boolean };
@@ -21,8 +26,8 @@ const Board: React.FC = () => {
 	}> = useRef({white: {}, black: {}});
 
 	const sides = {
-		ally: Colors.WHITE,
-		enemy: Colors.BLACK,
+		ally: gameColor,
+		enemy: gameColor === Colors.WHITE ? Colors.BLACK : Colors.WHITE,
 	}
 
 	const boardRef = useRef<HTMLDivElement>(null);
@@ -48,16 +53,6 @@ const Board: React.FC = () => {
 		cellsFigure[`${figure.x}-${figure.y}`] = null;
 		cellsFigure[`${x}-${y}`] = figure;
 		dispatch(changeFigurePosition({figure, x, y}));
-		// setFigures(state => {
-		// 	return {
-		// 		...state,
-		// 		[figure.id]: {
-		// 			...state[figure.id],
-		// 			x,
-		// 			y
-		// 		}
-		// 	}
-		// });
 		setChoseFigurePos(null);
 	}
 
@@ -177,16 +172,10 @@ const Board: React.FC = () => {
 
 	const eatFigure = (figure: FigureData): void => {
 		cellsFigure[`${figure.x}-${figure.y}`] = null;
-		dispatch(removeFigure(figure));
-		// setFigures(state => {
-		// 	const newState = {...state};
-		// 	delete newState[figure.id];
-		// 	return newState;
-		// });
-
 		if (figure.name === Figures.KING) {
-			setGameWon(getOtherColor(figure.color));
+			dispatch(setGameWon(getOtherColor(figure.color)));
 		}
+		dispatch(removeFigure(figure));
 	}
 
 	const moveOrEat = (figure: FigureData, x: number, y: number): void => {
@@ -446,6 +435,8 @@ const Board: React.FC = () => {
 	}
 
 	const nextAIMove = () => {
+		const figures = store.getState().game.figures;
+
 		const getRandomElementOfArray = <T extends unknown>(arr: T[]): T => {
 			return arr[Math.floor(Math.random() * arr.length)];
 		}
@@ -466,7 +457,6 @@ const Board: React.FC = () => {
 		}
 		const cellForMove = getRandomElementOfArray(availableCellsArr);
 		const [x, y] = cellForMove.split('-');
-		console.log(`Move ${randomFigureId} from ${figures[randomFigureId].x}-${figures[randomFigureId].y} to ${x}-${y}`);
 		moveOrEat(figures[randomFigureId], Number(x), Number(y));
 	}
 
