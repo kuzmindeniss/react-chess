@@ -122,9 +122,15 @@
   right: 0;
   bottom: 0;
   display: flex;
+  flex-flow: column;
   align-items: center;
   justify-content: center;
   background-color: rgba(0, 0, 0, .7);
   color: white;
   font-size: 20px;
+}
+
+.gameWonButton {
+  color: inherit;
+
 }

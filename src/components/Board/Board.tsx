@@ -13,6 +13,7 @@ import {
 } from "redux/gameSlice";
 import {useAppDispatch, useAppSelector} from "redux/hooks";
 import store from "../../redux/store";
+import {Link} from "react-router-dom";
 
 const Board: React.FC = () => {
 	const dispatch = useAppDispatch();
@@ -514,6 +515,7 @@ const Board: React.FC = () => {
 
 		return <div className={styles.gameWon}>
 			<h2 className={styles.gameWonTitle}>{ color } won</h2>
+			<Link to="/" className={styles.gameWonButton}>Main page</Link>
 		</div>;
 	}
 
