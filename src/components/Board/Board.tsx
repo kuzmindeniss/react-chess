@@ -8,7 +8,7 @@ import {
 	removeFigure,
 	selectColor,
 	selectFigures,
-	selectGameWon,
+	selectGameWon, setGameStarted,
 	setGameWon
 } from "redux/gameSlice";
 import {useAppDispatch, useAppSelector} from "redux/hooks";
@@ -170,10 +170,15 @@ const Board: React.FC = () => {
 		});
 	}
 
+	const endGame = (winner: Colors) => {
+		dispatch(setGameWon(winner));
+		dispatch(setGameStarted(false))
+	}
+
 	const eatFigure = (figure: FigureData): void => {
 		cellsFigure[`${figure.x}-${figure.y}`] = null;
 		if (figure.name === Figures.KING) {
-			dispatch(setGameWon(getOtherColor(figure.color)));
+			endGame(getOtherColor(figure.color));
 		}
 		dispatch(removeFigure(figure));
 	}
@@ -519,6 +524,7 @@ const Board: React.FC = () => {
 	useEffect(() => {
 		resizeBoard();
 		window.addEventListener('resize', resizeBoard);
+		dispatch(setGameStarted(true));
 	}, [])
 
 	return <div className={styles.boardWrapper} ref={boardRef}>
