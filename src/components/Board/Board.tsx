@@ -500,8 +500,8 @@ const Board: React.FC = () => {
 	const checkIsKingInCheck = (color: Colors) => {
 		updateAllAvailableCells();
 		const kings = {
-			[Colors.WHITE]: figures['white-king-5-1'],
-			[Colors.BLACK]: figures['black-king-5-8']
+			[Colors.WHITE]: figures['white-king-4-1'],
+			[Colors.BLACK]: figures['black-king-4-8']
 		}
 		const king = kings[color];
 		if (!king) return;
