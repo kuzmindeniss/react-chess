@@ -71,7 +71,7 @@ const Board: React.FC = () => {
 			for (let x = 1; x <= 8; x++) {
 				cellsFigure[`${x}-${y}`] = null;
 				const boardLetter = BoardLettersByNumber[x];
-				if ((y + x) % 2 !== 0) {
+				if ((y + x) % 2 === 0) {
 					cells.push(<Cell
 						color={Colors.BLACK} x={boardLetter} y={y}
 						key={`${boardLetter}-${y}`}

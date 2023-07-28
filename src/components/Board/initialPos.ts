@@ -22,17 +22,17 @@ export const initialFigures: {[key: string]: FigureData} = {
 		y: 8,
 		color: Colors.BLACK,
 	},
-	'black-queen-5-8': {
-		id: 'black-queen-5-8',
+	'black-queen-4-8': {
+		id: 'black-queen-4-8',
 		name: Figures.QUEEN,
-		x: 5,
+		x: 4,
 		y: 8,
 		color: Colors.BLACK,
 	},
-	'black-king-4-8': {
-		id: 'black-king-4-8',
+	'black-king-5-8': {
+		id: 'black-king-5-8',
 		name: Figures.KING,
-		x: 4,
+		x: 5,
 		y: 8,
 		color: Colors.BLACK,
 	},
@@ -137,17 +137,17 @@ export const initialFigures: {[key: string]: FigureData} = {
 		y: 1,
 		color: Colors.WHITE,
 	},
-	'white-queen-5-1': {
-		id: 'white-queen-5-1',
+	'white-queen-4-1': {
+		id: 'white-queen-4-1',
 		name: Figures.QUEEN,
-		x: 5,
+		x: 4,
 		y: 1,
 		color: Colors.WHITE,
 	},
-	'white-king-4-1': {
-		id: 'white-king-4-1',
+	'white-king-5-1': {
+		id: 'white-king-5-1',
 		name: Figures.KING,
-		x: 4,
+		x: 5,
 		y: 1,
 		color: Colors.WHITE,
 	},
